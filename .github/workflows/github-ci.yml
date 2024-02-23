@@ -1,12 +1,4 @@
-name: Push-to-EC2
 
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  # pull_request:
-  #   branches: [ "main" ]
 
   # Allows you to run this workflow manually from the Actions tab
   # workflow_dispatch:
@@ -27,9 +19,15 @@ on:
 #           REMOTE_HOST: ${{ secrets.EC2_HOST }}
 #           REMOTE_USER: ${{ secrets.EC2_USERNAME }}
 #           TARGET: ${{ secrets.TARGET_DIR }}
+name: Deploy to EC
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   deploy:
-    name: Deploy to EC2 on main branch push
     runs-on: ubuntu-latest
 
     steps:
@@ -38,15 +36,27 @@ jobs:
 
     - name: Configure SSH
       run: |
-        mkdir -p ~/.ssh
+        mkdir -p ~/.ssh/
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600  ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Install PHP and dependencies
+      run: sudo apt-get update && sudo apt-get install php php-mbstring php-xml npm
+
+    - name: Install Composer dependencies
+      run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+    - name: Build front-end
+      run: npm install && npm run build 
 
     - name: Deploy to EC2
       run: |
-        rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:${{ secrets.TARGET_DIR }}
-        ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd ${{ secrets.TARGET_DIR }}'
+        rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/cicd-example
+        ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/html/cicd-example'
 
+    # - name: Set file permissions
+    #   run: chmod -R ugo+rw storage/logs && chmod -R ugo+rw storage/framework
+    
     - name: Clear SSH key
       run: rm ~/.ssh/id_rsa
