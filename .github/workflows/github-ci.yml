@@ -43,7 +43,7 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        rsync -avz -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/cicd-example
+        rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/cicd-example
         ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/html/cicd-example'
 
     # - name: Set file permissions
