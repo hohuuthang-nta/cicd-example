@@ -45,8 +45,8 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:${{ secrets.TARGET_DIR }}
-        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} 'cd ${{ secrets.TARGET_DIR }}'
+        rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:${{ secrets.TARGET_DIR }}
+        ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd ${{ secrets.TARGET_DIR }}'
 
     - name: Clear SSH key
       run: rm ~/.ssh/id_rsa
