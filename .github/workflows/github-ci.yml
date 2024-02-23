@@ -11,30 +11,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      <<: *shared_steps
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-  deploy_develop:
-    if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-    steps:
-      <<: *shared_steps
+      - name: Deploy to EC2
+        run: |
+          rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/cicd-example
+          ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/html/cicd-example'
 
-shared_steps: &shared_steps
-  - name: Checkout repository
-    uses: actions/checkout@v2
-
-  - name: Configure SSH
-    run: |
-      mkdir -p ~/.ssh/
-      echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-  - name: Deploy to EC2
-    run: |
-      rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/cicd-example
-      ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/html/cicd-example'
-
-  - name: Clear SSH key
-    run: rm ~/.ssh/id_rsa
+      - name: Clear SSH key
+        run: rm ~/.ssh/id_rsa
