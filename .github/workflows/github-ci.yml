@@ -3,8 +3,7 @@ name: Deploy to EC
 on:
   push:
     branches:
-      # - main
-      - develop
+      - main
 
 jobs:
   deploy_main:
@@ -15,12 +14,3 @@ jobs:
     steps:
       - name: Deploy to EC2 (Main)
         uses: ./actions/deploy-to-ec2.yml
-
-  # deploy_develop:
-  #   if: github.ref == 'refs/heads/develop'
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     SSH_PRIVATE_KEY: SSH_PRIVATE_KEY
-  #   steps:
-  #     - name: Deploy to EC2 (Develop)
-  #       uses: ./actions/deploy-to-ec2.yml
