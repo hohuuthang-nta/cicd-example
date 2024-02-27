@@ -3,18 +3,18 @@ name: Deploy to EC
 on:
   push:
     branches:
+      - staging
       - main
 
 jobs:
   deploy_main:
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     env:
       SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: develop
 
       - name: Configure SSH
         run: |
