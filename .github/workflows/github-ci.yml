@@ -3,59 +3,24 @@ name: Deploy to EC
 on:
   push:
     branches:
-      - main
+      # - main
       - develop
 
 jobs:
   deploy_main:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to EC2
-        run: |
-          rsync -avz --delete --exclude-from=".rsyncignore" -e "ssh -i ~/.ssh/id_rsa" ./ ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/cicd-example
-          ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'cd /var/www/html/cicd-example'
-
-      - name: Clear SSH key
-        run: rm ~/.ssh/id_rsa
-
-
-name: Deploy to EC
-
-on:
-  push:
-    branches:
-      - main
-      - develop
-
-jobs:
-  # deploy_main:
-  #   if: github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     SSH_PRIVATE_KEY: MAIN_SSH_PRIVATE_KEY
-  #   steps:
-  #     - name: Deploy to EC2 (Main)
-  #       uses: ./actions/deploy-to-ec2.yml
-
-  deploy_develop:
-    if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
     env:
       SSH_PRIVATE_KEY: SSH_PRIVATE_KEY
     steps:
-      - name: Deploy to EC2 (Develop)
+      - name: Deploy to EC2 (Main)
         uses: ./actions/deploy-to-ec2.yml
+
+  # deploy_develop:
+  #   if: github.ref == 'refs/heads/develop'
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     SSH_PRIVATE_KEY: SSH_PRIVATE_KEY
+  #   steps:
+  #     - name: Deploy to EC2 (Develop)
+  #       uses: ./actions/deploy-to-ec2.yml
