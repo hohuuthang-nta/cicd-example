@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   deploy_main:
@@ -12,7 +13,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Configure SSH
         run: |
@@ -28,3 +31,31 @@ jobs:
 
       - name: Clear SSH key
         run: rm ~/.ssh/id_rsa
+
+
+name: Deploy to EC
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # deploy_main:
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     SSH_PRIVATE_KEY: MAIN_SSH_PRIVATE_KEY
+  #   steps:
+  #     - name: Deploy to EC2 (Main)
+  #       uses: ./actions/deploy-to-ec2.yml
+
+  deploy_develop:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    env:
+      SSH_PRIVATE_KEY: SSH_PRIVATE_KEY
+    steps:
+      - name: Deploy to EC2 (Develop)
+        uses: ./actions/deploy-to-ec2.yml
