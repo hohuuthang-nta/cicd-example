@@ -10,7 +10,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      SSH_PRIVATE_KEY: SSH_PRIVATE_KEY
+      SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh/
-          echo "${{ secrets[env.SSH_PRIVATE_KEY] }}" > ~/.ssh/id_rsa
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
